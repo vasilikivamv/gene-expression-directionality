@@ -1,4 +1,4 @@
-# The following code based on the paper from C. Grazian & B. Liseo (2017)
+# The following code is based on the paper from C. Grazian & B. Liseo (2017)
 
 rm(list=ls())
 
