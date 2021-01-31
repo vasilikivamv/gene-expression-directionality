@@ -1,4 +1,4 @@
-## Part of the following code comes from Lee & Kim (2018) paper
+## Part of the following code is based on the paper of Lee & Kim (2018)
 
 library(gcmr)
 library(VineCopula)
@@ -16,6 +16,7 @@ mydata <- data.frame(scale(genes1))
 
 ## Compute pseudo-observations for copula inference-----------------------------------------------------------
 
+set.seed(1234)
 udat = data.frame(pobs(mydata))
 
 u <- udat[,1]        # marginal U ~ Uniform (0,1)   (??)
