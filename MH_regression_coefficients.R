@@ -78,5 +78,5 @@ z3=easyMCMC(10000,-2,0.1)
 plot(z1,type="l")
 lines(z2,col="dodgerblue")
 lines(z3,col="green")
-abline(h=0.05774,col="indianred",lwd=1.5)    # true value from GCMR for Intercept ??0 = 0.05774
+abline(h=0.05774,col="indianred",lwd=1.5)    # true value from GCMR for Intercept b0 = 0.05774
 
