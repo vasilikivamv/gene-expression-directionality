@@ -80,3 +80,11 @@ lines(z2,col="dodgerblue")
 lines(z3,col="green")
 abline(h=0.05774,col="indianred",lwd=1.5)    # true value from GCMR for Intercept b0 = 0.05774
 
+## Acceptance rates-----------------------------------------------------------------------------------------------
+
+burnIn = 5000             # burn-in of the first 5000 values
+
+acceptancez1 = 1-mean(duplicated(z1[-(1:burnIn)]))   # 74.42%
+acceptancez2 = 1-mean(duplicated(z2[-(1:burnIn)]))   # 72.32%
+acceptancez3 = 1-mean(duplicated(z3[-(1:burnIn)]))   # 71.96%
+
