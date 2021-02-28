@@ -359,3 +359,74 @@ post_VtoU$beta0_keep = post_VtoU$beta0[-c(1:1000)]
 post_VtoU$beta1_keep = post_VtoU$beta1[-c(1:1000)]
 summary(as.mcmc(post_VtoU$beta0_keep))
 summary(as.mcmc(post_VtoU$beta1_keep))
+
+
+
+
+## Directionality--------------------------------------------------------------------------------------------
+
+## V to U
+
+
+for (i in 1:9000) {
+  
+  Er12 <-exp(post_VtoU$beta0_keep[i]+dat$V*post_VtoU$beta1_keep[i])/
+    (1+exp(post_VtoU$beta0_keep[i]+dat$V*post_VtoU$beta1_keep[i]))
+  
+  vtou_rho2[i] <-var(Er12)/var(dat$U)
+  
+}
+
+
+
+
+## U to V
+
+for (i in 1:9000) {
+  Er21<-exp(post_UtoV$beta0_keep[i]+dat$U*post_UtoV$beta1_keep[i])/
+    (1+exp(post_UtoV$beta0_keep[i]+dat$U*post_UtoV$beta1_keep[i]))
+  
+  utov_rho2[i] <-var(Er21)/var(dat$V)
+  
+  
+}
+
+
+
+
+rslt <- utov_rho2 - vtou_rho2
+
+
+final_results <- data.frame(utov_rho2,vtou_rho2, rslt)
+str(final_results)
+
+
+plot(density(utov_rho2), xlim = c(-0.05 , 0.15),
+     xlab = "Red: direction V to U --- Blue: Direction U to V",main = "Posterior densities of the directional dependence ", col = "dodgerblue")
+polygon(density(utov_rho2), col="dodgerblue", border="black")
+
+lines(density(vtou_rho2), col = "indianred")
+polygon(density(vtou_rho2), col="indianred", border="blue")
+
+# lines(density(rslt), col = "green")
+# polygon(density(rslt), col="green", border="black")
+
+grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted",
+     lwd = par("lwd"), equilogs = TRUE)
+
+
+
+par(mfrow= c(1,2))
+hist(utov_rho2, freq = FALSE, main = "Histogram of U to V",
+     xlab = "U to V", col="dodgerblue")
+lines(density(utov_rho2), lty = 5)
+
+hist(vtou_rho2, freq = FALSE, main = "Histogram of V to U",
+     xlab = "V to U", col="indianred")
+lines(density(vtou_rho2), lty = 5)
+
+
+table(utov_rho2 > vtou_rho2)
+
+
+
