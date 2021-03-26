@@ -11,9 +11,9 @@ genes1<- read.delim(file="D:/Gene_Data/New_data/Nkx2-1_Sftpa1.txt",
 ## Compute pseudo-observations for copula inference-----------------------------------------------------------
 
 set.seed(1234)
-udat = data.frame(pobs(genes1))
+udat = pobs(genes1)
 
-U <- udat[,1]        # marginal U ~ Uniform (0,1)   (??)
+U <- udat[,1]        # marginal U ~ Uniform (0,1)  
 V <- udat[,2]        # marginal V ~ Uniform (0,1)
 
 dat <- data.frame(U,V)
@@ -35,7 +35,7 @@ summary(r12)
 Er12<-exp(r12$estimate[1]+dat$V*r12$estimate[2])/
   (1+exp(r12$estimate[1]+dat$V*r12$estimate[2]))
 
-vtou_rho2<-var(Er12)/var(dat$U)  ##  1.872321e-06
+vtou_rho2<-var(Er12)/var(dat$U)  
 
 
 ## Regression from U to V-------------------------------------------------------------------------------------
@@ -47,13 +47,13 @@ summary(r21)
 Er21<-exp(r21$estimate[1]+dat$U*r21$estimate[2])/
   (1+exp(r21$estimate[1]+dat$U*r21$estimate[2]))
 
-utov_rho2<-var(Er21)/var(dat$V)  ## 0.000416715
+utov_rho2<-var(Er21)/var(dat$V) 
 
 
-## Result output is the difference and gives us the direction of influence------------------------------------
+## Result output is the difference and gives us the direction of influence----------------------------------------------------------------------------------
 
 rslt <- utov_rho2 - vtou_rho2
-rslt  ## 0.0004148427
+rslt  
 
 
 
@@ -62,7 +62,7 @@ rslt  ## 0.0004148427
                      #### -----  Bayesian Copula Marginal Regression ----- ####
                      ##########################################################
 
-## Compute the posterior densities---------------------------------------------------------------------------------
+## Compute the posterior densities----------------------------------------------------------------------------------------------------------------------------
 
    ## From U to V ##
 lpost_f_UtoV <- function(u, v, beta0, beta1, kappa)
@@ -95,6 +95,10 @@ lpost_f_VtoU <- function(u, v, beta0, beta1, kappa)
   return(lpost)
 }
 
+
+
+
+## Metropolis-Hastings U to V---------------------------------------------------------------------------------------------------------------------------------------------
 mh_UtoV = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
   
   
@@ -141,7 +145,7 @@ mh_UtoV = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
 
 
 
-## Metropolis-Hastings V to U--------------------------------------------------------------------
+## Metropolis-Hastings V to U------------------------------------------------------------------------------------------------------------------------------------------
 
 mh_VtoU = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
   
@@ -183,7 +187,7 @@ mh_VtoU = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
 
 
 
-## After 10000 iterations the results are----------------------------------------------------------------------
+## After 10000 iterations the results are------------------------------------------------------------------------------------------------------------------
   
 
 # U to V
@@ -197,20 +201,20 @@ post_VtoU = mh_VtoU (n_iter = 10000, beta0_init = 0, beta1_init = 0, kappa = 1, 
 str(post_VtoU)
 
 
-## The traceplots of the regression coefficients from U to V--------------------------------------------------
+## The traceplots of the regression coefficients from U to V--------------------------------------------------------------------------------------------------
 
 traceplot(as.mcmc(post_UtoV$beta0), main = "Traceplot of beta0 (U to V)")
 traceplot(as.mcmc(post_UtoV$beta1),main = "Traceplot of beta1 (U to V)")
 
 
-## The traceplots of the regression coefficients from V to U--------------------------------------------------
+## The traceplots of the regression coefficients from V to U-----------------------------------------------------------------------------------------------------------
   
 
 traceplot(as.mcmc(post_VtoU$beta0),main = "Traceplot of beta0 (V to U)")
 traceplot(as.mcmc(post_VtoU$beta1),main = "Traceplot of beta1 (V to U)")
 
 
-## Histograms------------------------------------------------------------------------------------------------
+## Histograms---------------------------------------------------------------------------------------------------------------------------------------------
 
 par(mfrow= c(2,2))
 hist(as.mcmc(post_UtoV$beta0), freq = FALSE, main = "Histogram of beta0 (U to V)",
@@ -262,7 +266,7 @@ grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted",
 
 
 
-## Multiple chains-----------------------------------------------------------------------------------------
+## Multiple chains-------------------------------------------------------------------------------------------------------------------------------------------
 
 set.seed(1234)
 
@@ -342,7 +346,7 @@ coda::traceplot(pmc3, main="Traceplot of beta1")
 
 
 
-## Estimations (mean, sd, quantiles)--------------------------------------------------------------------------
+## Estimations (mean, sd, quantiles)---------------------------------------------------------------------------------------------------------------
 
 
 ## U to V
@@ -363,7 +367,7 @@ summary(as.mcmc(post_VtoU$beta1_keep))
 
 
 
-## Directionality--------------------------------------------------------------------------------------------
+## Directionality----------------------------------------------------------------------------------------------------------------------------------------------
 
 ## V to U
 
@@ -391,42 +395,50 @@ for (i in 1:9000) {
   
 }
 
-
-
-
 rslt <- utov_rho2 - vtou_rho2
 
 
+
+
+library(reshape2)
+library(ggplot2)
+library(ggpubr)
+
+final2 <-  data.frame(utov_rho2,vtou_rho2)
 final_results <- data.frame(utov_rho2,vtou_rho2, rslt)
-str(final_results)
-
-
-plot(density(utov_rho2), xlim = c(-0.05 , 0.15),
-     xlab = "Red: direction V to U --- Blue: Direction U to V",main = "Posterior densities of the directional dependence ", col = "dodgerblue")
-polygon(density(utov_rho2), col="dodgerblue", border="black")
-
-lines(density(vtou_rho2), col = "indianred")
-polygon(density(vtou_rho2), col="indianred", border="blue")
-
-# lines(density(rslt), col = "green")
-# polygon(density(rslt), col="green", border="black")
-
-grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted",
-     lwd = par("lwd"), equilogs = TRUE)
+colnames(final2) <- c("U to V", "V to U")
+colnames(final_results) <- c("U to V", "V to U", "difference")
 
 
 
-par(mfrow= c(1,2))
-hist(utov_rho2, freq = FALSE, main = "Histogram of U to V",
-     xlab = "U to V", col="dodgerblue")
-lines(density(utov_rho2), lty = 5)
 
-hist(vtou_rho2, freq = FALSE, main = "Histogram of V to U",
-     xlab = "V to U", col="indianred")
-lines(density(vtou_rho2), lty = 5)
+data3<- melt(final_results)
+data2<- melt(final2)
+dens <- ggplot(data3,aes(x=value, fill=variable)) + geom_density(alpha=0.40)+ scale_fill_brewer(palette = "Set1")+ theme_light()
+his <- ggplot(data2,aes(x=value, fill=variable)) + geom_histogram(position = "dodge",alpha=0.55)+ scale_fill_brewer(palette = "Set1")+ theme_light()
+
+ggarrange(dens, his,ncol = 1, nrow = 2)
+
+
+ggsave("genes.png", width = 25, height = 25, units = "cm")
+
+
 
 
 table(utov_rho2 > vtou_rho2)
 
 
 
+sintesi_UtoV<-c(quantile(utov_rho2,.05), quantile(utov_rho2,.5),  quantile(utov_rho2,.95))
+as.numeric(sintesi_UtoV)
+mean(utov_rho2)
+
+sintesi_VtoU<-c(quantile(vtou_rho2,.05), quantile(vtou_rho2,.5),  quantile(vtou_rho2,.95))
+as.numeric(sintesi_VtoU)
+mean(vtou_rho2)
+
+
+
+sintesi_diff <- c(quantile(rslt,.05), quantile(rslt,.5),  quantile(rslt,.95))
+as.numeric(sintesi_diff)
+mean(sintesi_diff)
