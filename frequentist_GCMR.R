@@ -4,13 +4,8 @@ library(gcmr)
 library(VineCopula)
 
 ## Load data--------------------------------------------------------------------------------------------------
-genes1<- read.delim(file="D:/Gene_Data/New_data/Nkx2-1_Sftpa1.txt",
+genes1<- read.delim(file="...Nkx2-1_Sftpa1.txt",
                     header = TRUE, sep = "\t")
-
-
-## Scale the data---------------------------------------------------------------------------------------------
-
-mydata <- data.frame(scale(genes1))
 
 
 
@@ -19,7 +14,7 @@ mydata <- data.frame(scale(genes1))
 set.seed(1234)
 udat = data.frame(pobs(mydata))
 
-u <- udat[,1]        # marginal U ~ Uniform (0,1)   (??)
+u <- udat[,1]        # marginal U ~ Uniform (0,1)  
 v <- udat[,2]        # marginal V ~ Uniform (0,1)
 
 dat <- data.frame(u,v)
