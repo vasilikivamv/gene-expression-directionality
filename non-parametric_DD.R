@@ -11,7 +11,7 @@ library(VineCopula)
 library(copula)
 library(ggplot2)
 library(grid)
-
+library(reshape2)
 
 
 ## "Quadratic" function--------------------------------------------------------------------------------------
@@ -81,13 +81,9 @@ EL <- function(SC)
 
 
 ## Load data--------------------------------------------------------------------------------------------------
-genes1<- read.delim(file="D:/Gene_Data/New_data/Nkx2-1_Sftpa1.txt",
+genes1<- read.delim(file="...Nkx2-1_Sftpa1.txt",
                     header = TRUE, sep = "\t")
 
-
-## Scale the data---------------------------------------------------------------------------------------------
-
-mydata <- data.frame(scale(genes1))
 
 
 
@@ -96,7 +92,7 @@ mydata <- data.frame(scale(genes1))
 set.seed(1234)
 udat = data.frame(pobs(mydata))
 
-u <- udat[,1]        # marginal U ~ Uniform (0,1)   (??)
+u <- udat[,1]        # marginal U ~ Uniform (0,1)   
 v <- udat[,2]        # marginal V ~ Uniform (0,1)
 
 dat <- data.frame(u,v)
@@ -111,7 +107,7 @@ summary(r12)
 Er12<-exp(r12$estimate[1]+dat$v*r12$estimate[2])/
   (1+exp(r12$estimate[1]+dat$v*r12$estimate[2]))
 
-vtou_rho2<-var(Er12)/var(dat$u)                  # 1.872321e-06
+vtou_rho2<-var(Er12)/var(dat$u)               
 
 
 ## Regression from U to V-------------------------------------------------------------------------------------
@@ -123,13 +119,13 @@ summary(r21)
 Er21<-exp(r21$estimate[1]+dat$u*r21$estimate[2])/
   (1+exp(r21$estimate[1]+dat$u*r21$estimate[2]))
 
-utov_rho2<-var(Er21)/var(dat$v)                 # 0.000416715
+utov_rho2<-var(Er21)/var(dat$v)               
 
 
 
-## Bayesian Inference for Copula Directional Dependence-----------------------------------------------------
+## Non-parametric Bayesian Copula Directional Dependence-------------------------------------------------------------------------------------
 
-## Output: a sample of size S of  values approximately from the posterior distribution of rho.
+## Output: a sample of size S of  values approximately from the posterior distribution of the directionality
 
 ## Direction U to V----------------------------------------------------------------------------------------
 
@@ -148,9 +144,10 @@ ELCOP_UtoV<- function(sample){               # Given observations from unknown c
   
   psam_UtoV <- sample(rh, size=S, rep=T, prob=omega_UtoV)        # sample with replacement
   
-  sintesi_UtoV<-c(quantile(psam_UtoV,.05), quantile(psam_UtoV,.5),  quantile(psam_UtoV,.95))
+  return(as.numeric(psam_UtoV))
   
-  return(as.numeric(sintesi_UtoV))
+  
+  
   
 }
 
@@ -169,9 +166,7 @@ ELCOP_VtoU<- function(sample){              # Given observations from unknown co
   }
   psam_VtoU<-sample(rh, size=S, rep=T, prob=omega_VtoU)    # sample with replacement
   
-  sintesi_VtoU<-c(quantile(psam_VtoU,.05), quantile(psam_VtoU,.5),  quantile(psam_VtoU,.95))
-  
-  return(as.numeric(sintesi_VtoU)) 
+  return(as.numeric(psam_VtoU))
   
 }
 
@@ -179,15 +174,46 @@ ELCOP_VtoU<- function(sample){              # Given observations from unknown co
 ## Final quantiles of the directional dependence-------------------------------------------------------------
 
 set.seed(1234)
-as.numeric(ELCOP_UtoV(dat))                               #  -0.469773943   0.009091824  0.347334895
-as.numeric(ELCOP_VtoU(dat))                               #  -0.46310855   -0.01274599   0.41894777
+UtoV <- as.numeric(ELCOP_UtoV(dat))     # U to V                          
+VtoU <- as.numeric(ELCOP_VtoU(dat))     # V to U                          
+
+
+sintesi_UtoV<-c(quantile(UtoV,.05), quantile(UtoV,.5),  quantile(UtoV,.95))   # quantiles U to V
+as.numeric(sintesi_UtoV)
+mean(UtoV)  
+
+sintesi_VtoU<-c(quantile(VtoU,.05), quantile((VtoU),.5),  quantile(VtoU,.95))  # quantiles V to U
+as.numeric(sintesi_VtoU)
+mean(VtoU)
+
+
+rslt <- UtoV - VtoU     # difference
+
+
+sintesi_diff <- c(quantile(rslt,.05), quantile(rslt,.5),  quantile(rslt,.95))    # quantiles of the difference
+as.numeric(sintesi_diff)
+mean(sintesi_diff)
+
+
+table(UtoV > VtoU)  # logical count of the directions
+
+## Plottinng------------------------------------------------------------------------------------------------------------------
+
+UtoV <- as.data.frame(UtoV)
+VtoU <- as.data.frame(VtoU)
+rslt <- as.data.frame(rslt)
+final3 <-  data.frame(UtoV, VtoU,rslt)
+final2 <-  data.frame(UtoV, VtoU)
+colnames(final2) <- c("Nkx2.1 to Sftpa1", "Sftpa1 to Nkx2.1")
+colnames(final3) <- c("Nkx2.1 to Sftpa1", "Sftpa1 to Nkx2.1", "difference")
 
 
 
-## Plot of the posterior densities of the directional dependence---------------------------------------------
-par(mfrow=c(1,1))
-plot(density(psam_UtoV),col="indianred",main="Posterior densities of directional dependence Nkx2.1 and Sftpa1")
-lines(density(psam_VtoU),col="dodgerblue")
 
+data3<- melt(final3)
+data2<- melt(final2)
+dens <- ggplot(data3,aes(x=value, fill=variable)) + geom_density(alpha=0.40)+ scale_fill_brewer(palette = "Set1")+ theme_light()
+his <- ggplot(data2,aes(x=value, fill=variable)) + geom_histogram(position = "dodge",alpha=0.55)+ scale_fill_brewer(palette = "Set1")+ theme_light()
 
+ggarrange(dens, his,ncol = 1, nrow = 2)
 
