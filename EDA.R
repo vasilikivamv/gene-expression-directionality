@@ -1,31 +1,31 @@
+                                            ### Code for some exploratory plots of the genes ###
 
+## Load libraries----------------------------------------------------------------------------------------------------------------------------------------------------------------
 library(reshape2)
 library(ggplot2)
 library(ggpubr)
 
 
-## Load data--------------------------------------------------------------------------------------------------
-genes1<- read.delim(file="D:/Gene_Data/New_data/Nkx2-1_Sftpa1.txt",
+## Load data---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+genes1 <- read.delim(file=".../ Nkx2-1_Sftpa1.txt",
                     header = TRUE, sep = "\t")
 
-genes2<- read.delim(file="D:/Gene_Data/New_data/Nkx2-1_Sftpb.txt",
+genes2 <- read.delim(file=".../New_data/Nkx2-1_Sftpb.txt",
                     header = TRUE, sep = "\t")
 
-genes3<- read.delim(file="D:/Gene_Data/New_data/Nkx2-1_Sftpc.txt",
+genes3 <- read.delim(file=".../Nkx2-1_Sftpc.txt",
                     header = TRUE, sep = "\t")
 
-genes4<- read.delim(file="D:/Gene_Data/gene_data_old/copula_proximal_ASE_vgn028_1012h_atac_k27.tab",
+genes4 <- read.delim(file=".../copula_proximal_ASE_vgn028_1012h_atac_k27.tab",
                     header = TRUE, sep = "\t")
 
-
-
-genes5<- read.delim(file="D:/Gene_Data/gene_data_old/copula_proximal_ASE_vgn028_1012h_atac_rna.tab",
+genes5 <- read.delim(file=".../copula_proximal_ASE_vgn028_1012h_atac_rna.tab",
                     header = TRUE, sep = "\t")
 
-genes6<- read.delim(file="D:/Gene_Data/gene_data_old/copula_proximal_ASE_vgn028_1012h_k4_rna.tab",
+genes6 <- read.delim(file=".../copula_proximal_ASE_vgn028_1012h_k4_rna.tab",
                     header = TRUE, sep = "\t")
 
-
+# keeping relevant columns
 genes4 <- data.frame(genes4[,2],genes4[,4])
 colnames(genes4) <- c("ATAC","k27")
 genes5 <- data.frame(genes5[,2],genes5[,4])
@@ -36,8 +36,7 @@ colnames(genes6) <- c("k4","RNA")
 
 
 
-## Histograms--------------------------------------------------------------------------------------------
-
+## Histograms--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 data1<- melt(genes1)
@@ -63,26 +62,23 @@ ggsave("histsB.png", width = 25, height = 25, units = "cm")
 
 
 
+## Boxplots Single-Cell----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
-#### Boxplots Single-Cell---------------------------------------------------------------------------------------
-
-old <- data.frame(genes1$Nkx2.1, genes1$Sftpa1, genes2$Sftpb, genes3$Sftpc)
-colnames(old) <- c("Nkx2.1","Sftpa1","Sftpb","Sftpc")
-dat <- melt(old)
+scRNA.seq <- data.frame(genes1$Nkx2.1, genes1$Sftpa1, genes2$Sftpb, genes3$Sftpc)
+colnames(scRNA.seq ) <- c("Nkx2.1","Sftpa1","Sftpb","Sftpc")
+dat <- melt(scRNA.seq )
 colnames(dat) <- c("genes","value")
 
 
 
-
+# find the mean value of the expression of each gene
 dat_mean <- dat %>% 
   group_by(genes) %>% 
   summarize(average = mean(value)) %>%
   ungroup()
 
 
-
+# boxplots with line connecting the mean values across the genes
 dat %>% 
   ggplot(aes(x=genes, y=value, color = genes)) +
   geom_boxplot() +geom_jitter(width=0.15, alpha=0.3)+
@@ -92,15 +88,15 @@ dat %>%
   geom_line(data = dat_mean, 
             mapping = aes(x = genes, y = average, group=1),color = "black")
 
+# save plot
 ggsave("boxplotA.png", width = 25, height = 25, units = "cm")
 
 
 
 
-#### Boxplots Epigenome---------------------------------------------------------------------------------------
+## Boxplots Epigenome------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-new <- data.frame(genes4, genes5, genes6)
-colnames(old) <- c("Nkx2.1","Sftpa1","Sftpb","Sftpc")
+
 dat4 <- melt(genes4)
 dat5 <- melt(genes5)
 dat6 <- melt(genes6)
@@ -110,7 +106,7 @@ colnames(dat6) <- c("genes","value")
 
 
 
-
+# find mean values
 dat_mean4 <- dat4 %>% 
   group_by(genes) %>% 
   summarize(average = mean(value)) %>%
@@ -125,7 +121,7 @@ dat_mean6 <- dat6 %>%
   ungroup()
 
 
-
+# same boxplots as above  
 dat4 %>% 
   ggplot(aes(x=genes, y=value, color = genes)) +
   geom_boxplot() +geom_jitter(width=0.15, alpha=0.3)+
@@ -135,6 +131,7 @@ dat4 %>%
   geom_line(data = dat_mean4, 
             mapping = aes(x = genes, y = average, group=1),color = "black")
 
+# save plot
 ggsave("boxplotB.png", width = 25, height = 25, units = "cm")
 
 
@@ -147,7 +144,9 @@ dat5 %>%
   geom_line(data = dat_mean5, 
             mapping = aes(x = genes, y = average, group=1),color = "black")
 
+# save plot
 ggsave("boxplotC.png", width = 25, height = 25, units = "cm")
+
 
 dat6 %>% 
   ggplot(aes(x=genes, y=value, color = genes)) +
@@ -158,6 +157,6 @@ dat6 %>%
   geom_line(data = dat_mean6, 
             mapping = aes(x = genes, y = average, group=1),color = "black")
 
+# save plot
 ggsave("boxplotD.png", width = 25, height = 25, units = "cm")
-
 
