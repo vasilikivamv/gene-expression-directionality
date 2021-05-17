@@ -32,7 +32,7 @@ Owen <- function(x, thre, gradiente)
 
 
 
-## Computation of empirical likelihood-----------------------------------------------------------------------
+## Computation of Empirical Likelihood-------------------------------------------------------------------------------------------------------------------------------------------
 
 ##input: 
 ####### 1) SC --> individual contributions of the estimating function. 
@@ -80,14 +80,14 @@ EL <- function(SC)
 
 
 
-## Load data--------------------------------------------------------------------------------------------------
-genes1<- read.delim(file="...Nkx2-1_Sftpa1.txt",
+## Load data--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+genes1<- read.delim(file=".../Nkx2-1_Sftpa1.txt",
                     header = TRUE, sep = "\t")
 
 
 
 
-## Compute pseudo-observations for copula inference-----------------------------------------------------------
+## Compute pseudo-observations for copula inference-----------------------------------------------------------------------------------------------------------------------------
 
 set.seed(1234)
 udat = data.frame(pobs(mydata))
@@ -98,7 +98,12 @@ v <- udat[,2]        # marginal V ~ Uniform (0,1)
 dat <- data.frame(u,v)
 
 
-## Regression from V to U-------------------------------------------------------------------------------------
+
+
+
+
+## Direction V to U--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 r12<-gcmr( u~v, data = dat, marginal = beta.marg(link = "logit"),
            cormat = arma.cormat(0, 0) )
 summary(r12)
@@ -107,10 +112,36 @@ summary(r12)
 Er12<-exp(r12$estimate[1]+dat$v*r12$estimate[2])/
   (1+exp(r12$estimate[1]+dat$v*r12$estimate[2]))
 
-vtou_rho2<-var(Er12)/var(dat$u)               
+vtou_rho2<-var(Er12)/var(dat$u)         # this is the estimate of directional dependence that will be used      V ---> U
 
 
-## Regression from U to V-------------------------------------------------------------------------------------
+
+ELCOP_VtoU<- function(sample){              # Given observations
+  
+  # Output: a sample of size S of  values approximately from the posterior distribution of the directionality
+  S=1000 # number of samples
+  
+  rh<-runif(S, -1,1)                        # draw rho ~ Unif (-1,1)
+  omega_VtoU <- rep(0,S)
+  for (s in 1:S) {
+    estim_VtoU =  vtou_rho2 - rh[s]
+    
+    omega_VtoU[s] <- exp(-EL(estim_VtoU)$elr)
+    
+  }
+  psam_VtoU<-sample(rh, size=S, rep=T, prob=omega_VtoU)    # sample with replacement
+  
+  return(as.numeric(psam_VtoU))
+}
+
+
+
+
+
+
+
+##  Direction U to V-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 r21<-gcmr( v~u, data = dat, marginal = beta.marg(link = "logit"),
            cormat = arma.cormat(0, 0) )
 summary(r21)
@@ -119,21 +150,16 @@ summary(r21)
 Er21<-exp(r21$estimate[1]+dat$u*r21$estimate[2])/
   (1+exp(r21$estimate[1]+dat$u*r21$estimate[2]))
 
-utov_rho2<-var(Er21)/var(dat$v)               
+utov_rho2<-var(Er21)/var(dat$v)         # this is the estimate of directional dependence that will be used      U ---> V
 
 
 
-## Non-parametric Bayesian Copula Directional Dependence-------------------------------------------------------------------------------------
-
-## Output: a sample of size S of  values approximately from the posterior distribution of the directionality
-
-## Direction U to V----------------------------------------------------------------------------------------
-
-ELCOP_UtoV<- function(sample){               # Given observations from unknown copula
+ELCOP_UtoV<- function(sample){               # Given observations 
   
-  S=1000
+  # Output: a sample of size S of  values approximately from the posterior distribution of the directionality
+  S=1000 # number of samples
   
-  rh<-runif(S, -1,1)                         # draw rho ~ Unif (-1,1) prior for Spearman's rho
+  rh<-runif(S, -1,1)                         # draw rho ~ Unif (-1,1)
   omega_UtoV<-rep(0,S)
   
   for (s in 1:S) {
@@ -145,33 +171,11 @@ ELCOP_UtoV<- function(sample){               # Given observations from unknown c
   psam_UtoV <- sample(rh, size=S, rep=T, prob=omega_UtoV)        # sample with replacement
   
   return(as.numeric(psam_UtoV))
-  
-  
-  
-  
-}
-
-## Direction V to U------------------------------------------------------------------------------------------
-ELCOP_VtoU<- function(sample){              # Given observations from unknown copula
-  
-  S=1000
-  
-  rh<-runif(S, -1,1)                        # draw rho ~ Unif (-1,1) prior for Spearman's rho
-  omega_VtoU <- rep(0,S)
-  for (s in 1:S) {
-    estim_VtoU =  vtou_rho2 - rh[s]
-    
-    omega_VtoU[s] <- exp(-EL(estim_VtoU)$elr)
-    
-  }
-  psam_VtoU<-sample(rh, size=S, rep=T, prob=omega_VtoU)    # sample with replacement
-  
-  return(as.numeric(psam_VtoU))
-  
 }
 
 
-## Final quantiles of the directional dependence-------------------------------------------------------------
+
+## Final quantiles of the directional dependence---------------------------------------------------------------------------------------------------------------------------------
 
 set.seed(1234)
 UtoV <- as.numeric(ELCOP_UtoV(dat))     # U to V                          
@@ -180,25 +184,28 @@ VtoU <- as.numeric(ELCOP_VtoU(dat))     # V to U
 
 sintesi_UtoV<-c(quantile(UtoV,.05), quantile(UtoV,.5),  quantile(UtoV,.95))   # quantiles U to V
 as.numeric(sintesi_UtoV)
-mean(UtoV)  
+mean(UtoV)  # mean value
 
 sintesi_VtoU<-c(quantile(VtoU,.05), quantile((VtoU),.5),  quantile(VtoU,.95))  # quantiles V to U
 as.numeric(sintesi_VtoU)
-mean(VtoU)
+mean(VtoU) # mean value
 
+
+
+## Compute difference of directionality------------------------------------------------------------------------------------------------------------------------------------------
 
 rslt <- UtoV - VtoU     # difference
-
-
 sintesi_diff <- c(quantile(rslt,.05), quantile(rslt,.5),  quantile(rslt,.95))    # quantiles of the difference
 as.numeric(sintesi_diff)
-mean(sintesi_diff)
+mean(sintesi_diff) # mean value of the difference
 
 
 table(UtoV > VtoU)  # logical count of the directions
 
-## Plottinng------------------------------------------------------------------------------------------------------------------
 
+## Plottinng---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# make results data frames for plots
 UtoV <- as.data.frame(UtoV)
 VtoU <- as.data.frame(VtoU)
 rslt <- as.data.frame(rslt)
@@ -208,12 +215,14 @@ colnames(final2) <- c("Nkx2.1 to Sftpa1", "Sftpa1 to Nkx2.1")
 colnames(final3) <- c("Nkx2.1 to Sftpa1", "Sftpa1 to Nkx2.1", "difference")
 
 
+# melt
+data3<- melt(final3) # density
+data2<- melt(final2) # histogram
 
-
-data3<- melt(final3)
-data2<- melt(final2)
+# plot densities and histograms
 dens <- ggplot(data3,aes(x=value, fill=variable)) + geom_density(alpha=0.40)+ scale_fill_brewer(palette = "Set1")+ theme_light()
 his <- ggplot(data2,aes(x=value, fill=variable)) + geom_histogram(position = "dodge",alpha=0.55)+ scale_fill_brewer(palette = "Set1")+ theme_light()
 
+# arrange the ggplots
 ggarrange(dens, his,ncol = 1, nrow = 2)
 
