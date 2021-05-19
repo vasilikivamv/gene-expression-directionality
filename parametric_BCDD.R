@@ -3,12 +3,15 @@ rm(list=ls())
 library(gcmr)
 library(VineCopula)
 library(coda)
+library(reshape2)
+library(ggplot2)
+library(ggpubr)
 
-## Load data--------------------------------------------------------------------------------------------------
+## Load data---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 genes1<- read.delim(file="...Nkx2-1_Sftpa1.txt",
                     header = TRUE, sep = "\t")
 
-## Compute pseudo-observations for copula inference-----------------------------------------------------------
+## Compute pseudo-observations for copula inference------------------------------------------------------------------------------------------------------------------------------
 
 set.seed(1234)
 udat = pobs(genes1)
@@ -50,21 +53,21 @@ Er21<-exp(r21$estimate[1]+dat$U*r21$estimate[2])/
 utov_rho2<-var(Er21)/var(dat$V) 
 
 
-## Result output is the difference and gives us the direction of influence----------------------------------------------------------------------------------
+## Result output is the difference and gives us the direction of influence-------------------------------------------------------------------------------------------------------
 
 rslt <- utov_rho2 - vtou_rho2
 rslt  
-
-
 
 
                      ########################################################################
                      #### -----  Bayesian Parametric Copula Directional Dependence ----- ####
                      ########################################################################
 
-## Compute the posterior densities----------------------------------------------------------------------------------------------------------------------------
 
-   ## From U to V ##
+
+---------------------------------------------- ## Compute the posterior densities ##---------------------------------------------------------------------------------------------
+
+## From U to V ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 lpost_f_UtoV <- function(u, v, beta0, beta1, kappa)
 {
   mu <- exp (u *beta1 + beta0) / (1 + exp (u *beta1 + beta0) )
@@ -80,25 +83,8 @@ lpost_f_UtoV <- function(u, v, beta0, beta1, kappa)
 }
 
 
-## From V to U ##
-lpost_f_VtoU <- function(u, v, beta0, beta1, kappa)
-{
-  mu <- exp (v *beta1 + beta0) / (1 + exp (v *beta1 + beta0) )
-  
-  llik <- sum( dbeta (u, mu *kappa, (1-mu) *kappa), log=T)
-  
-  lprior <- sum (dnorm (c(beta1,beta0), 0, 10), log=T) +
-    sum(dgamma (kappa, 1, 1, log=T) )
-  
-  lpost <- llik + lprior
-  
-  return(lpost)
-}
 
-
-
-
-## Metropolis-Hastings U to V---------------------------------------------------------------------------------------------------------------------------------------------
+## Metropolis-Hastings
 mh_UtoV = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
   
   
@@ -144,9 +130,24 @@ mh_UtoV = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
 
 
 
+## From V to U-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+lpost_f_VtoU <- function(u, v, beta0, beta1, kappa)
+{
+  mu <- exp (v *beta1 + beta0) / (1 + exp (v *beta1 + beta0) )
+  
+  llik <- sum( dbeta (u, mu *kappa, (1-mu) *kappa), log=T)
+  
+  lprior <- sum (dnorm (c(beta1,beta0), 0, 10), log=T) +
+    sum(dgamma (kappa, 1, 1, log=T) )
+  
+  lpost <- llik + lprior
+  
+  return(lpost)
+}
 
-## Metropolis-Hastings V to U------------------------------------------------------------------------------------------------------------------------------------------
 
+
+## Metropolis-Hastings
 mh_VtoU = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
   
   
@@ -187,7 +188,7 @@ mh_VtoU = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
 
 
 
-## After 10000 iterations the results are------------------------------------------------------------------------------------------------------------------
+## Running 10000 simulations-----------------------------------------------------------------------------------------------------------------------------------------------------
   
 
 # U to V
@@ -201,21 +202,19 @@ post_VtoU = mh_VtoU (n_iter = 10000, beta0_init = 0, beta1_init = 0, kappa = 1, 
 str(post_VtoU)
 
 
-## The traceplots of the regression coefficients from U to V--------------------------------------------------------------------------------------------------
-
+## The traceplots of the regression coefficients from U to V--------------------------------------------------------------------------------------------------------------------
 traceplot(as.mcmc(post_UtoV$beta0), main = "Traceplot of beta0 (U to V)")
 traceplot(as.mcmc(post_UtoV$beta1),main = "Traceplot of beta1 (U to V)")
 
 
-## The traceplots of the regression coefficients from V to U-----------------------------------------------------------------------------------------------------------
-  
-
+## The traceplots of the regression coefficients from V to U---------------------------------------------------------------------------------------------------------------------
 traceplot(as.mcmc(post_VtoU$beta0),main = "Traceplot of beta0 (V to U)")
 traceplot(as.mcmc(post_VtoU$beta1),main = "Traceplot of beta1 (V to U)")
 
 
-## Histograms---------------------------------------------------------------------------------------------------------------------------------------------
+## Histograms of coefficients----------------------------------------------------------------------------------------------------------------------------------------------------
 
+# U to V
 par(mfrow= c(2,2))
 hist(as.mcmc(post_UtoV$beta0), freq = FALSE, main = "Histogram of beta0 (U to V)",
      xlab = "beta0", col="dodgerblue")
@@ -227,7 +226,7 @@ hist(as.mcmc(post_UtoV$beta1), freq = FALSE, main = "Histogram of beta1 (U to V)
 points(r21$estimate[2], 0.0, pch = 19, col = "indianred")
 lines(density(as.mcmc(post_UtoV$beta1)), lty = 5)
 
-
+# V to U
 hist(as.mcmc(post_VtoU$beta0), freq = FALSE, main = "Histogram of beta0 (V to U)",
      xlab = "beta0", col="dodgerblue")
 points(r12$estimate[1], 0.0, pch = 19, col = "indianred")
@@ -240,7 +239,7 @@ lines(density(as.mcmc(post_VtoU$beta1)), lty = 5)
 
 
 
-## Plot comparison for the posterior densities---------------------------------------------------------------
+## Comparison of the posterior densities of regression coefficients--------------------------------------------------------------------------------------------------------------
 
 
 plot(density(post_VtoU$beta0), xlim = c(-2 , 2), 
@@ -266,90 +265,11 @@ grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted",
 
 
 
-## Multiple chains-------------------------------------------------------------------------------------------------------------------------------------------
 
-set.seed(1234)
-
-
-## U to V
+## Estimations (mean, sd, quantiles)---------------------------------------------------------------------------------------------------------------------------------------------
 
 
-nsim = 10000
-post1 = mh_UtoV(n_iter=nsim, beta0_init = 5, beta1_init= 5, cand_sd= 0.4, kappa = 1, u=U, v=V)
-post1$accpt  #acceptance rate
-
-post2 = mh_UtoV(n_iter=nsim, beta0_init = 1, beta1_init= 1, cand_sd= 0.45, kappa = 1, u=U, v=V)
-post2$accpt
-
-post3 = mh_UtoV(n_iter=nsim, beta0_init = 0 , beta1_init= 0, cand_sd= 0.5, kappa = 1, u=U, v=V)
-post3$accpt
-
-
-post4 = mh_UtoV(n_iter=nsim, beta0_init = 0, beta1_init=0, cand_sd=0.35, kappa = 1, u=U, v=V)
-post4$accpt
-
-post5 = mh_UtoV(n_iter=nsim, beta0_init = 0, beta1_init=0, cand_sd=0.3, kappa = 1, u=U, v=V)
-post5$accpt
-
-
-
-## V to U
-set.seed(1234)
-
-nsim = 10000
-post6 = mh_VtoU(n_iter=nsim, beta0_init = 5, beta1_init= 5, cand_sd= 0.4, kappa = 1, u=U, v=V)
-post6$accpt
-
-post7 = mh_VtoU(n_iter=nsim, beta0_init = 1, beta1_init= 1, cand_sd= 0.45, kappa = 1, u=U, v=V)
-post7$accpt
-
-post8 = mh_VtoU(n_iter=nsim, beta0_init = 0 , beta1_init= 0, cand_sd= 0.5, kappa = 1, u=U, v=V)
-post8$accpt
-
-
-post9 = mh_VtoU(n_iter=nsim, beta0_init = 0, beta1_init=0, cand_sd=0.35, kappa = 1, u=U, v=V)
-post9$accpt
-
-post10 = mh_VtoU(n_iter=nsim, beta0_init = 0, beta1_init=0, cand_sd=0.3, kappa = 1, u=U, v=V)
-post10$accpt
-
-
-
-## Traceplots of the direction U to V-----------------------------------------------------------------------
-
-pmc0 = mcmc.list(as.mcmc(post1$beta0), as.mcmc(post2$beta0), 
-                 as.mcmc(post3$beta0), as.mcmc(post4$beta0), as.mcmc(post5$beta0))
-
-
-coda::traceplot(pmc0, main="Traceplot of beta0")
-
-pmc1 = mcmc.list(as.mcmc(post1$beta1), as.mcmc(post2$beta1), 
-                 as.mcmc(post3$beta1), as.mcmc(post4$beta1), as.mcmc(post5$beta1))
-
-coda::traceplot(pmc1, main="Traceplot of beta1")
-
-
-
-
-## Traceplots of the direction V to U-------------------------------------------------------------------------
-
-pmc2 = mcmc.list(as.mcmc(post6$beta0), as.mcmc(post7$beta0), 
-                 as.mcmc(post8$beta0), as.mcmc(post9$beta0), as.mcmc(post10$beta0))
-
-
-coda::traceplot(pmc2, main="Traceplot of beta0")
-
-pmc3 = mcmc.list(as.mcmc(post6$beta1), as.mcmc(post7$beta1), 
-                 as.mcmc(post8$beta1), as.mcmc(post9$beta1), as.mcmc(post10$beta1))
-
-coda::traceplot(pmc3, main="Traceplot of beta1")
-
-
-
-## Estimations (mean, sd, quantiles)---------------------------------------------------------------------------------------------------------------
-
-
-## U to V
+## U to V coefficients
 
 post_UtoV$beta0_keep = post_UtoV$beta0[-c(1:1000)] # discard early iterations
 post_UtoV$beta1_keep = post_UtoV$beta1[-c(1:1000)]
@@ -357,7 +277,7 @@ summary(as.mcmc(post_UtoV$beta0_keep))
 summary(as.mcmc(post_UtoV$beta1_keep))
 
 
-## V to U
+## V to U coefficients
 
 post_VtoU$beta0_keep = post_VtoU$beta0[-c(1:1000)]
 post_VtoU$beta1_keep = post_VtoU$beta1[-c(1:1000)]
@@ -367,43 +287,34 @@ summary(as.mcmc(post_VtoU$beta1_keep))
 
 
 
-## Directionality----------------------------------------------------------------------------------------------------------------------------------------------
-
-## V to U
+## Compute Directionality--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+
+# U to V
+for (i in 1:9000) {
+  Er21<-exp(post_UtoV$beta0_keep[i]+dat$U*post_UtoV$beta1_keep[i])/
+    (1+exp(post_UtoV$beta0_keep[i]+dat$U*post_UtoV$beta1_keep[i]))
+  
+  utov_rho2[i] <-var(Er21)/var(dat$V)
+}
+
+
+# V to U
 for (i in 1:9000) {
   
   Er12 <-exp(post_VtoU$beta0_keep[i]+dat$V*post_VtoU$beta1_keep[i])/
     (1+exp(post_VtoU$beta0_keep[i]+dat$V*post_VtoU$beta1_keep[i]))
   
   vtou_rho2[i] <-var(Er12)/var(dat$U)
-  
 }
 
 
-
-
-## U to V
-
-for (i in 1:9000) {
-  Er21<-exp(post_UtoV$beta0_keep[i]+dat$U*post_UtoV$beta1_keep[i])/
-    (1+exp(post_UtoV$beta0_keep[i]+dat$U*post_UtoV$beta1_keep[i]))
-  
-  utov_rho2[i] <-var(Er21)/var(dat$V)
-  
-  
-}
-
+# difference
 rslt <- utov_rho2 - vtou_rho2
 
 
-
-
-library(reshape2)
-library(ggplot2)
-library(ggpubr)
-
+# summarize the results
 final2 <-  data.frame(utov_rho2,vtou_rho2)
 final_results <- data.frame(utov_rho2,vtou_rho2, rslt)
 colnames(final2) <- c("U to V", "V to U")
@@ -411,34 +322,31 @@ colnames(final_results) <- c("U to V", "V to U", "difference")
 
 
 
-
+# plot
 data3<- melt(final_results)
 data2<- melt(final2)
 dens <- ggplot(data3,aes(x=value, fill=variable)) + geom_density(alpha=0.40)+ scale_fill_brewer(palette = "Set1")+ theme_light()
 his <- ggplot(data2,aes(x=value, fill=variable)) + geom_histogram(position = "dodge",alpha=0.55)+ scale_fill_brewer(palette = "Set1")+ theme_light()
-
 ggarrange(dens, his,ncol = 1, nrow = 2)
 
 
-ggsave("genes.png", width = 25, height = 25, units = "cm")
 
-
-
-
+# logical --> check how many samples come from each direction
 table(utov_rho2 > vtou_rho2)
 
 
-
+# posterior quantiles U ---> V
 sintesi_UtoV<-c(quantile(utov_rho2,.05), quantile(utov_rho2,.5),  quantile(utov_rho2,.95))
 as.numeric(sintesi_UtoV)
 mean(utov_rho2)
 
+# posterior quantiles V ---> U
 sintesi_VtoU<-c(quantile(vtou_rho2,.05), quantile(vtou_rho2,.5),  quantile(vtou_rho2,.95))
 as.numeric(sintesi_VtoU)
 mean(vtou_rho2)
 
 
-
+# posterior quantiles of their difference
 sintesi_diff <- c(quantile(rslt,.05), quantile(rslt,.5),  quantile(rslt,.95))
 as.numeric(sintesi_diff)
 mean(sintesi_diff)
