@@ -68,6 +68,23 @@ rslt
 ---------------------------------------------- ## Compute the posterior densities ##---------------------------------------------------------------------------------------------
 
 ## From U to V ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#' This function defines the posterior density of beta0 and beta1 parameters from U to V
+#'
+#'
+#' This function will be used at the Metropolis-Hastings algorithm
+#'
+#' @param u A vector
+#' @param v A vector
+#' @param beta0 parameter of the mean \code{mu} of Beta distribution
+#' @param beta1 parameter of the mean \code{mu} of Beta distribution
+#' @param kappa precision parameter of Beta distribution
+#'
+#' @return posterior samples of \code{beta0} and \code{beta1} for direction U to V
+#' 
+#' 
+#'
 lpost_f_UtoV <- function(u, v, beta0, beta1, kappa)
 {
   mu <- exp (u *beta1 + beta0) / (1 + exp (u *beta1 + beta0) )
@@ -83,8 +100,22 @@ lpost_f_UtoV <- function(u, v, beta0, beta1, kappa)
 }
 
 
-
 ## Metropolis-Hastings
+
+#' Metropolis- Hastings algorithm to calculate posteriors \code{beta0} and \code{beta1} parameters from U to V
+#'
+#'
+#' @param n_iter Number of iterations of the chain
+#' @param beta0_init initial value of the chain
+#' @param beta1_init initial value of the chain
+#' @param kappa value for the precision parameter of Beta distribution
+#' @param u A vector
+#' @param v A vector
+#' @param cand_sd candidate value (proposed) standard deviation
+#' 
+#' @return posterior samples of \code{beta0} and \code{beta1} for direction U to V
+#' 
+#'
 mh_UtoV = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
   
   
@@ -96,8 +127,6 @@ mh_UtoV = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
   
   ## posterior density now
   lg_now = lpost_f_UtoV (beta0 = beta0_now, beta1 = beta1_now, kappa = kappa, u = U, v = V)
-  
-  
   
   for (i in 1:n_iter) {
     
@@ -131,6 +160,24 @@ mh_UtoV = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
 
 
 ## From V to U-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#' This function defines the posterior density of beta0 and beta1 parameters from V to U
+#'
+#'
+#' This function will be used at the Metropolis-Hastings algorithm
+#'
+#' @param u A vector
+#' @param v A vector
+#' @param beta0 parameter of the mean \code{mu} of Beta distribution
+#' @param beta1 parameter of the mean \code{mu} of Beta distribution
+#' @param kappa precision parameter of Beta distribution
+#'
+#' @return posterior samples of \code{beta0} and \code{beta1} for direction V to U
+#' 
+#' 
+#'
+
 lpost_f_VtoU <- function(u, v, beta0, beta1, kappa)
 {
   mu <- exp (v *beta1 + beta0) / (1 + exp (v *beta1 + beta0) )
@@ -148,6 +195,21 @@ lpost_f_VtoU <- function(u, v, beta0, beta1, kappa)
 
 
 ## Metropolis-Hastings
+
+#' Metropolis- Hastings algorithm to calculate posteriors \code{beta0} and \code{beta1} parameters from V to U
+#'
+#'
+#' @param n_iter Number of iterations of the chain
+#' @param beta0_init initial value of the chain
+#' @param beta1_init initial value of the chain
+#' @param kappa value for the precision parameter of Beta distribution
+#' @param u A vector
+#' @param v A vector
+#' @param cand_sd candidate value (proposed) standard deviation
+#' 
+#' @return posterior samples of \code{beta0} and \code{beta1} for direction V to U
+#' 
+#'
 mh_VtoU = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
   
   
@@ -272,15 +334,15 @@ grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted",
 ## U to V coefficients
 
 post_UtoV$beta0_keep = post_UtoV$beta0[-c(1:1000)] # discard early iterations
-post_UtoV$beta1_keep = post_UtoV$beta1[-c(1:1000)]
+post_UtoV$beta1_keep = post_UtoV$beta1[-c(1:1000)] # discard early iterations
 summary(as.mcmc(post_UtoV$beta0_keep))
 summary(as.mcmc(post_UtoV$beta1_keep))
 
 
 ## V to U coefficients
 
-post_VtoU$beta0_keep = post_VtoU$beta0[-c(1:1000)]
-post_VtoU$beta1_keep = post_VtoU$beta1[-c(1:1000)]
+post_VtoU$beta0_keep = post_VtoU$beta0[-c(1:1000)] # discard early iterations
+post_VtoU$beta1_keep = post_VtoU$beta1[-c(1:1000)] # discard early iterations
 summary(as.mcmc(post_VtoU$beta0_keep))
 summary(as.mcmc(post_VtoU$beta1_keep))
 
