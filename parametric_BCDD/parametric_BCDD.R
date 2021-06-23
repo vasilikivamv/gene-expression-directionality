@@ -385,9 +385,9 @@ colnames(final_results) <- c("U to V", "V to U", "difference")
 
 
 # plot
-data3<- melt(final_results)
+#data3<- melt(final_results)
 data2<- melt(final2)
-dens <- ggplot(data3,aes(x=value, fill=variable)) + geom_density(alpha=0.40)+ scale_fill_brewer(palette = "Set1")+ theme_light()
+dens <- ggplot(data2,aes(x=value, fill=variable)) + geom_density(alpha=0.40)+ scale_fill_brewer(palette = "Set1")+ theme_light()
 his <- ggplot(data2,aes(x=value, fill=variable)) + geom_histogram(position = "dodge",alpha=0.55)+ scale_fill_brewer(palette = "Set1")+ theme_light()
 ggarrange(dens, his,ncol = 1, nrow = 2)
 
@@ -399,16 +399,16 @@ table(utov_rho2 > vtou_rho2)
 
 # posterior quantiles U ---> V
 sintesi_UtoV<-c(quantile(utov_rho2,.05), quantile(utov_rho2,.5),  quantile(utov_rho2,.95))
-as.numeric(sintesi_UtoV)
+as.numeric(round(sintesi_UtoV, digits=7))
 mean(utov_rho2)
 
 # posterior quantiles V ---> U
 sintesi_VtoU<-c(quantile(vtou_rho2,.05), quantile(vtou_rho2,.5),  quantile(vtou_rho2,.95))
-as.numeric(sintesi_VtoU)
+as.numeric(round(sintesi_VtoU, digits=7))
 mean(vtou_rho2)
 
 
 # posterior quantiles of their difference
 sintesi_diff <- c(quantile(rslt,.05), quantile(rslt,.5),  quantile(rslt,.95))
-as.numeric(sintesi_diff)
+as.numeric(round(sintesi_diff, digits=7))
 mean(sintesi_diff)
