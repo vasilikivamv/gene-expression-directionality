@@ -70,21 +70,21 @@ rslt
 ## From U to V ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-#' This function defines the posterior density of beta0 and beta1 parameters from U to V
-#'
-#'
-#' This function will be used at the Metropolis-Hastings algorithm
-#'
-#' @param u A vector
-#' @param v A vector
-#' @param beta0 parameter of the mean \code{mu} of Beta distribution
-#' @param beta1 parameter of the mean \code{mu} of Beta distribution
-#' @param kappa precision parameter of Beta distribution
-#'
-#' @return posterior samples of \code{beta0} and \code{beta1} for direction U to V
-#' 
-#' 
-#'
+# This function defines the posterior density of beta0 and beta1 parameters from U to V
+#
+#
+# This function will be used at the Metropolis-Hastings algorithm
+#
+# u An input vector
+# v An input vector
+# beta0 parameter of the mean mu of Beta distribution
+# beta1 parameter of the mean mu of Beta distribution
+# kappa precision parameter of Beta distribution
+#
+# return posterior samples of beta0 and beta1 for direction U to V
+# 
+# 
+#
 lpost_f_UtoV <- function(u, v, beta0, beta1, kappa)
 {
   mu <- exp (u *beta1 + beta0) / (1 + exp (u *beta1 + beta0) )
@@ -102,20 +102,21 @@ lpost_f_UtoV <- function(u, v, beta0, beta1, kappa)
 
 ## Metropolis-Hastings
 
-#' Metropolis- Hastings algorithm to calculate posteriors \code{beta0} and \code{beta1} parameters from U to V
-#'
-#'
-#' @param n_iter Number of iterations of the chain
-#' @param beta0_init initial value of the chain
-#' @param beta1_init initial value of the chain
-#' @param kappa value for the precision parameter of Beta distribution
-#' @param u A vector
-#' @param v A vector
-#' @param cand_sd candidate value (proposed) standard deviation
-#' 
-#' @return posterior samples of \code{beta0} and \code{beta1} for direction U to V
-#' 
-#'
+#  Metropolis- Hastings algorithm to calculate posteriors beta0 and beta1 parameters from U to V
+#
+#
+#  n_iter Number of iterations of the chain
+#  beta0_init initial value of the chain
+#  beta1_init initial value of the chain
+#  kappa value for the precision parameter of Beta distribution
+#  u A vector
+#  v A vector
+#  cand_sd candidate value (proposed) standard deviation
+# 
+#  return posterior samples of beta0 and {beta1 for direction U to V
+# 
+#
+
 mh_UtoV = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
   
   
@@ -162,21 +163,21 @@ mh_UtoV = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
 ## From V to U-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-#' This function defines the posterior density of beta0 and beta1 parameters from V to U
-#'
-#'
-#' This function will be used at the Metropolis-Hastings algorithm
-#'
-#' @param u A vector
-#' @param v A vector
-#' @param beta0 parameter of the mean \code{mu} of Beta distribution
-#' @param beta1 parameter of the mean \code{mu} of Beta distribution
-#' @param kappa precision parameter of Beta distribution
-#'
-#' @return posterior samples of \code{beta0} and \code{beta1} for direction V to U
-#' 
-#' 
-#'
+# This function defines the posterior density of beta0 and beta1 parameters from V to U
+#
+#
+# This function will be used at the Metropolis-Hastings algorithm
+#
+# u An input vector
+# v An input vector
+# beta0 parameter of the mean mu of Beta distribution
+# beta1 parameter of the mean mu of Beta distribution
+# kappa precision parameter of Beta distribution
+#
+# return posterior samples of beta0 and beta1 for direction V to U
+# 
+# 
+#
 
 lpost_f_VtoU <- function(u, v, beta0, beta1, kappa)
 {
@@ -196,20 +197,21 @@ lpost_f_VtoU <- function(u, v, beta0, beta1, kappa)
 
 ## Metropolis-Hastings
 
-#' Metropolis- Hastings algorithm to calculate posteriors \code{beta0} and \code{beta1} parameters from V to U
-#'
-#'
-#' @param n_iter Number of iterations of the chain
-#' @param beta0_init initial value of the chain
-#' @param beta1_init initial value of the chain
-#' @param kappa value for the precision parameter of Beta distribution
-#' @param u A vector
-#' @param v A vector
-#' @param cand_sd candidate value (proposed) standard deviation
-#' 
-#' @return posterior samples of \code{beta0} and \code{beta1} for direction V to U
-#' 
-#'
+#  Metropolis- Hastings algorithm to calculate posteriors beta0 and beta1 parameters from V to U
+#
+#
+#  n_iter Number of iterations of the chain
+#  beta0_init initial value of the chain
+#  beta1_init initial value of the chain
+#  kappa value for the precision parameter of Beta distribution
+#  u A vector
+#  v A vector
+#  cand_sd candidate value (proposed) standard deviation
+# 
+#  return posterior samples of beta0 and {beta1 for direction V to U
+# 
+#
+
 mh_VtoU = function(n_iter, beta0_init, beta1_init, kappa, u, v, cand_sd) {
   
   
