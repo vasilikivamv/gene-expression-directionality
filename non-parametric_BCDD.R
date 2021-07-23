@@ -34,16 +34,17 @@ Owen <- function(x, thre, gradiente)
 
 ## Computation of Empirical Likelihood-------------------------------------------------------------------------------------------------------------------------------------------
 
-#' This function computes the Empirical Likelihood according to Owen
-#'
-#' @param SC individual contributions of the estimating function. It can be either an n x 1 vector (scalar parameter) or an n x p matrix 
-#'
-#' @return w0 weights associated to each unit
-#' @return conv convergence of the algorithm (available only for vector valued parameter)
-#' @return elr empirical log-likelihood ratio
-#' @return  el empirical log-likelihood
-#'
-#'
+# This function computes the Empirical Likelihood according to Owen
+#
+#  param SC individual contributions of the estimating function. It can be either an n x 1 vector (scalar parameter) or an n x p matrix 
+#
+#  return w0 weights associated to each unit
+#  return conv convergence of the algorithm (available only for vector valued parameter)
+#  return elr empirical log-likelihood ratio
+#  return  el empirical log-likelihood
+#
+#
+
 EL <- function(SC)
 {
   n <- NROW(SC)
@@ -112,13 +113,13 @@ Er12<-exp(r12$estimate[1]+dat$v*r12$estimate[2])/
 vtou_rho2<-var(Er12)/var(dat$u)         # this is the estimate of directional dependence that will be used      V ---> U
 
 
-#' This function computes the Non-parametric Copula Directional Depencence from V to U
-#'
-#' @param sample a data frame of observations that are transformed through copula
-#'
-#' @return a sample of size S of  values approximately from the posterior distribution of the direction V to U
-#'
-#'
+# This function computes the Non-parametric Copula Directional Depencence from V to U
+#
+#  param sample a data frame of observations that are transformed through copula
+#
+#  return a sample of size S of  values approximately from the posterior distribution of the direction V to U
+#
+#
 ELCOP_VtoU<- function(sample){              # Given observations
   
   S=1000 # number of samples
@@ -156,13 +157,14 @@ utov_rho2<-var(Er21)/var(dat$v)         # this is the estimate of directional de
 
 
 
-#' This function computes the Non-parametric Copula Directional Depencence from U to V
-#'
-#' @param sample a data frame of observations that are transformed through copula
-#'
-#' @return a sample of size S of values approximately from the posterior distribution of the direction U to V
-#'
-#'
+# This function computes the Non-parametric Copula Directional Depencence from U to V
+#
+#  param sample a data frame of observations that are transformed through copula
+#
+#  return a sample of size S of values approximately from the posterior distribution of the direction U to V
+#
+#
+
 ELCOP_UtoV<- function(sample){               # Given observations 
   
   # Output: a sample of size S of  values approximately from the posterior distribution of the directionality
