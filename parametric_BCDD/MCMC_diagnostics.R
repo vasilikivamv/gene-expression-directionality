@@ -1,10 +1,8 @@
-## Multiple chains-----------------------------------------------------------------------------------------
+## Multiple chains----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+## 10 chains from U to V
 set.seed(1234)
-
-
-## U to V
-
 
 nsim = 10000
 post1 = mh_UtoV(n_iter=nsim, beta0_init =1 , beta1_init= 1, cand_sd= 0.22, kappa = 0.25, u=U, v=V)
@@ -15,7 +13,6 @@ post2$accpt
 
 post3 = mh_UtoV(n_iter=nsim, beta0_init = 0 , beta1_init= 0, cand_sd= 0.4, kappa = 0.25, u=U, v=V)
 post3$accpt
-
 
 post4 = mh_UtoV(n_iter=nsim, beta0_init = r21$estimate[1] , beta1_init= r21$estimate[2], cand_sd=0.22, kappa = 0.5, u=U, v=V)
 post4$accpt
@@ -38,7 +35,10 @@ post9$accpt
 post10 = mh_UtoV(n_iter=nsim, beta0_init = 0.5 , beta1_init= 0.5, cand_sd=0.22, kappa = 0.5, u=U, v=V)
 post10$accpt
 
-## V to U
+
+
+
+## 10 chains from V to U
 set.seed(1234)
 
 nsim = 10000
@@ -50,7 +50,6 @@ post12$accpt
 
 post13 = mh_VtoU(n_iter=nsim, beta0_init = 0 , beta1_init= 0, cand_sd= 0.4, kappa = 0.25, u=U, v=V)
 post13$accpt
-
 
 post14 = mh_VtoU(n_iter=nsim, beta0_init = r21$estimate[1] , beta1_init= r21$estimate[2], cand_sd=0.22, kappa = 0.5, u=U, v=V)
 post14$accpt
@@ -74,8 +73,9 @@ post20 = mh_VtoU(n_iter=nsim, beta0_init = 0.5 , beta1_init= 0.5, cand_sd=0.22, 
 post20$accpt
 
 
-## Traceplots of the direction U to V-----------------------------------------------------------------------
+## Traceplots of the direction U to V---------------------------------------------------------------------------------------------------------------------------------------------
 
+# beta0 coefficient
 pmc0 = mcmc.list(as.mcmc(post1$beta0), as.mcmc(post2$beta0), 
                  as.mcmc(post3$beta0), as.mcmc(post4$beta0), as.mcmc(post5$beta0),
                  as.mcmc(post6$beta0),
@@ -84,9 +84,9 @@ pmc0 = mcmc.list(as.mcmc(post1$beta0), as.mcmc(post2$beta0),
                  as.mcmc(post9$beta0),
                  as.mcmc(post10$beta0))
 
-
 coda::traceplot(pmc0, main="Traceplot of beta0 U to V")
 
+# beta1 coefficient
 pmc1 = mcmc.list(as.mcmc(post1$beta1), as.mcmc(post2$beta1), 
                  as.mcmc(post3$beta1), as.mcmc(post4$beta1), as.mcmc(post5$beta1),
                  as.mcmc(post6$beta1),
@@ -100,8 +100,9 @@ coda::traceplot(pmc1, main="Traceplot of beta1 U to V")
 
 
 
-## Traceplots of the direction V to U-----------------------------------------------------------------------
+## Traceplots of the direction V to U----------------------------------------------------------------------------------------------------------------------------------------------
 
+# beta0 coefficient
 pmc00 = mcmc.list(as.mcmc(post11$beta0), as.mcmc(post12$beta0), 
                  as.mcmc(post13$beta0), as.mcmc(post14$beta0), as.mcmc(post15$beta0),
                  as.mcmc(post16$beta0),
@@ -110,9 +111,9 @@ pmc00 = mcmc.list(as.mcmc(post11$beta0), as.mcmc(post12$beta0),
                  as.mcmc(post19$beta0),
                  as.mcmc(post20$beta0))
 
-
 coda::traceplot(pmc00, main="Traceplot of beta0 V to U")
 
+# beta1 coefficent
 pmc11 = mcmc.list(as.mcmc(post11$beta1), as.mcmc(post12$beta1), 
                   as.mcmc(post13$beta1), as.mcmc(post14$beta1), as.mcmc(post15$beta1),
                   as.mcmc(post16$beta1),
@@ -125,49 +126,30 @@ coda::traceplot(pmc11, main="Traceplot of beta1 V to U")
 
 
 
+# Autocorrelation------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
-
-# One major difference between the two chains we've looked at is the level of autocorrelation in each.
 # Autocorrelation is a number between (-1,1)and which measures how linearly dependent the current value of the
-# chain is on past values (called lags). We can see this with an autocorrelation plot:
-# 
-# Autocorrelation is important because it tells us how much information is available in our Markov chain.
-# Sampling 1000 iterations from a highly correlated Markov chain yields less information about
-#the stationary distribution than would obtain from 1000 samples
-# independently
-# drawn from the stationary distribution.
+# chain is on past values.
 
 
+##  U to V
+coda::autocorr.plot(as.mcmc(post_UtoV$beta0_keep)) # beta0
+coda::autocorr.plot(as.mcmc(post_UtoV$beta1_keep)) # beta1
 
-##  U to V------------------------------------------------------------------------------------
-coda::autocorr.plot(as.mcmc(post_UtoV$beta0_keep))
-coda::autocorr.plot(as.mcmc(post_UtoV$beta1_keep))
+coda::autocorr.diag(as.mcmc(post_UtoV$beta0_keep)) # beta0
+coda::autocorr.diag(as.mcmc(post_UtoV$beta1_keep)) # beta1
 
-coda::autocorr.diag(as.mcmc(post_UtoV$beta0_keep))
-coda::autocorr.diag(as.mcmc(post_UtoV$beta1_keep))
+## V to U
+coda::autocorr.plot(as.mcmc(post_VtoU$beta0_keep)) # beta0
+coda::autocorr.plot(as.mcmc(post_VtoU$beta1_keep)) # beta1
 
-## V to U-------------------------------------------------------------------------------------------
-coda::autocorr.plot(as.mcmc(post_VtoU$beta0_keep))
-coda::autocorr.plot(as.mcmc(post_VtoU$beta1_keep))
-
-coda::autocorr.diag(as.mcmc(post_VtoU$beta0_keep))
-coda::autocorr.diag(as.mcmc(post_VtoU$beta1_keep))
+coda::autocorr.diag(as.mcmc(post_VtoU$beta0_keep)) # beta0
+coda::autocorr.diag(as.mcmc(post_VtoU$beta1_keep)) # beta1
 
 
 
 
-# The Monte Carlo effective sample size is how many independent
-# samples from the stationary distribution you would have to draw to have equivalent
-# information in your Markov chain
-coda:: autocorr.plot(as.mcmc(post_UtoV$beta0_keep),lag.max=100)
-
-
-effectiveSize(as.mcmc(post_UtoV$beta0_keep))
-
-
-
+# Gelman-Rubin diagnostic----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 coda::gelman.diag(pmc1)
 # Potential scale reduction factors:
