@@ -1,3 +1,6 @@
+# Data: https://www.synapse.org/#!Synapse:syn2787209/wiki/70350
+
+
 # Libraries-----------------------------------------------------------------------------------------
 library(tidyverse)
 library(VineCopula)
@@ -6,20 +9,20 @@ library(copula)
 library(VC2copula)
 
 # Data----------------------------------------------------------------------------------------------
-net1<- read.delim(file="D:/DREAM5_data/Network1/input data/net1_expression_data.tsv",
-                  header = TRUE, sep = "\t")
-gold<- read.delim(file="D:/DREAM5_data/Network1/gold standard/DREAM5_NetworkInference_GoldStandard_Network1.tsv",
+net1 <- read.delim(file=".../DREAM5/Network1/input data/net1_expression_data.tsv",
+                 header = TRUE, sep = "\t")
+gold <- read.delim(file=".../DREAM5_data/Network1/gold standard/DREAM5_NetworkInference_GoldStandard_Network1.tsv",
                   header = FALSE, sep = "\t")
-used <- gold %>% subset(V3==1) %>% select(V1,V2)
+interactions <- gold %>% subset(V3==1) %>% select(V1,V2)
 
-# selected pair of genes (need to inpout a value for j)
-genes <- data.frame(net1 %>% select_if(used$V1[j]==colnames(net1)),
-                    net1 %>% select_if(used$V2[j]==colnames(net1)))
+# extract a pair of genes (here choose a value for j in ( 1, nrow(interactions) ) )
+genes <- data.frame(net1 %>% select_if (interactions$V1[j] == colnames(net1)),
+                      net1 %>% select_if (interactions$V2[j] == colnames(net1)))
 
 # Create the copula-------------------------------------------------------------------------------- 
 
 set.seed(1234)
-udat = pobs(genes)
+udat = pobs(genes) # pseudo-observations to be fed in copula functions
 
 U <- udat[,1]        # marginal U ~ Uniform (0,1)  
 V <- udat[,2]        # marginal V ~ Uniform (0,1)
