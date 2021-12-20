@@ -124,7 +124,7 @@ ELCOP_VtoU<- function(sample){              # Given observations
   
   S=1000 # number of samples
   
-  rh<-runif(S, -1,1)                        # draw rho ~ Unif (-1,1)
+  rh<-runif(S, 0,1)                        # draw rho ~ Unif (0,1)
   omega_VtoU <- rep(0,S)
   for (s in 1:S) {
     estim_VtoU =  vtou_rho2 - rh[s]
@@ -170,7 +170,7 @@ ELCOP_UtoV<- function(sample){               # Given observations
   # Output: a sample of size S of  values approximately from the posterior distribution of the directionality
   S=1000 # number of samples
   
-  rh<-runif(S, -1,1)                         # draw rho ~ Unif (-1,1)
+  rh<-runif(S, 0,1)                         # draw rho ~ Unif (0,1)
   omega_UtoV<-rep(0,S)
   
   for (s in 1:S) {
