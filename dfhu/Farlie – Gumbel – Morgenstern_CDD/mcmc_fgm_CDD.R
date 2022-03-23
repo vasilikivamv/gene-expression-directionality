@@ -1,3 +1,11 @@
+# (Preliminary work)
+# This code transforms the FGM Copula Directional Dependence from the paper of
+# "Kim, J. M., Jung, Y. S., Sungur, E. A., Han, K. H., Park, C., & Sohn, I. (2008). 
+# A copula method for modeling directional dependence of genes. BMC bioinformatics, 9(1), 1-12."
+# in the Bayesian setting.
+
+# Libraries
+
 library(gcmr)
 library(VineCopula)
 library(coda)
@@ -8,16 +16,10 @@ library(tidyverse)
 library(truncnorm)
 
 
+#   Transform data to standard uniform d.f. through its empirical d.f. (Copyright (C) 2018 Namgil Lee & Jong-Min Kim)
+ 
+empiric_df<-function(data,x) {  
 
-empiric_df<-function(data,x)
-{  
-  #-----------------------------------------------------------------------------#
-  #   Transform data to standard uniform d.f. through its empirical d.f.        #
-  #
-  # 
-  #   
-  #   Copyright (C) 2018 Namgil Lee & Jong-Min Kim
-  #-----------------------------------------------------------------------------#
   dat<-sort(data)
   
   if(min(dat)>0) a<-0 else a<-floor(min(dat)/100)*100
@@ -45,7 +47,6 @@ empiric_df<-function(data,x)
   q[n-1]<-1
   approx(p,q,xout=c(x),ties = mean)$y
 }
-
 
 
 
@@ -120,12 +121,12 @@ net1<- read.delim(file="C:/R_Directory/DREAM5_data/Network1/input data/net1_expr
                   header = TRUE, sep = "\t")
 gold<- read.delim(file="C:/R_Directory/DREAM5_data/Network1/gold standard/DREAM5_NetworkInference_GoldStandard_Network1.tsv",
                   header = FALSE, sep = "\t")
-used <- gold %>% subset(V3==1) %>% select(V1,V2)
+interactions <- gold %>% subset(V3==1) %>% select(V1,V2)
 
 # select a gene pair
 j=20
-genes <- data.frame(net1 %>% select_if(used$V1[j]==colnames(net1)),
-                    net1 %>% select_if(used$V2[j]==colnames(net1)))
+genes <- data.frame(net1 %>% select_if(interactions$V1[j]==colnames(net1)),
+                    net1 %>% select_if(interactions$V2[j]==colnames(net1)))
 
 
 n <- nrow(genes)
